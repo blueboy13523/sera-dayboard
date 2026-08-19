@@ -1,4 +1,4 @@
-import { db, uid } from './db'
+import { db, markSyncChange, uid } from './db'
 import type { ResetDuration, ResetPreferences, ResetSession } from './types'
 
 export const defaultResetPreferences: ResetPreferences = {
@@ -16,9 +16,11 @@ export async function saveResetPreferences(preferences: ResetPreferences) {
 export async function startResetSession(taskId: string | undefined, durationMinutes: ResetDuration) {
   const session: ResetSession = { id: uid(), taskId, startedAt: new Date().toISOString(), durationMinutes, completed: false, endedEarly: false }
   await db.resetSessions.add(session)
+  await markSyncChange('reset', session.id)
   return session
 }
 
 export async function finishResetSession(id: string, completed: boolean) {
   await db.resetSessions.update(id, { completed, endedEarly: !completed, endedAt: new Date().toISOString() })
+  await markSyncChange('reset', id)
 }

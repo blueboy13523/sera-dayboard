@@ -1,15 +1,22 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Capture, DayPlan, Interruption, ResetPreferences, ResetSession, Task } from './types'
+import type { Capture, DayPlan, Interruption, ResetPreferences, ResetSession, SyncChange, SyncSettings, Task } from './types'
 
 export const db = new Dexie('SeraDayboard') as Dexie & {
   tasks: EntityTable<Task, 'id'>; captures: EntityTable<Capture, 'id'>;
   interruptions: EntityTable<Interruption, 'id'>; dayPlans: EntityTable<DayPlan, 'date'>;
-  resetPreferences: EntityTable<ResetPreferences, 'id'>; resetSessions: EntityTable<ResetSession, 'id'>
+  resetPreferences: EntityTable<ResetPreferences, 'id'>; resetSessions: EntityTable<ResetSession, 'id'>;
+  syncChanges: EntityTable<SyncChange, 'id'>; syncSettings: EntityTable<SyncSettings, 'id'>
 }
 db.version(1).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date' })
 db.version(2).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date', resetPreferences: 'id', resetSessions: 'id,taskId,startedAt' })
+db.version(3).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date', resetPreferences: 'id', resetSessions: 'id,taskId,startedAt', syncChanges: 'id,entityType,entityId,changedAt', syncSettings: 'id' })
 export const todayKey = () => new Date().toLocaleDateString('en-CA')
+export const tomorrowKey = () => { const date = new Date(); date.setDate(date.getDate() + 1); return date.toLocaleDateString('en-CA') }
 export const uid = () => crypto.randomUUID()
+
+export async function markSyncChange(entityType: SyncChange['entityType'], entityId: string) {
+  await db.syncChanges.add({ id: uid(), entityType, entityId, changedAt: new Date().toISOString() })
+}
 
 export async function seedDemo() {
   if (await db.tasks.count()) return
