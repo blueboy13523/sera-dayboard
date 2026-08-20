@@ -1,8 +1,19 @@
-# Sera Dayboard
+# Sera Dayboard v0.3
 
 Sera Dayboard is a calm, ADHD-friendly workday guide for a tablet. It keeps attention on **NOW** and **NEXT**, while planning, captures, and review stay available without crowding focus mode.
 
-The TODAY view also includes a guided **RESET** routine with 1-, 3-, and 5-minute breathing presets. RESET uses optional generated Web Audio, works offline, and always returns to the task that was active before the routine.
+The TODAY view includes one-tap **RESET / BREATHE** using the saved default routine, with secondary controls for 1-, 3-, and 5-minute presets. RESET uses optional generated Web Audio, works offline, and always returns to the task that was active before the routine.
+
+## v0.3 features
+
+- **WEEK** provides Monday–Sunday planning with previous/current/next week navigation. Tasks can be added, edited, deleted, reordered, marked as Major Objectives, or moved to another day with touch controls.
+- **TODAY** derives its focused queue only from the current calendar date; the weekly backlog remains outside focus mode.
+- **Completion Feedback** in Settings offers Quiet, Bravo Zulu, Achievement Mode, and explicitly opt-in Full Absurdity personalities. Sound, browser voice, animation, volume, and Major Objective celebrations are independently configurable.
+- Completion sound is generated locally with Web Audio. Task completion never waits for sound, speech, animation, a network, or Sera.
+- Existing DayPlans are safely backfilled with planned dates during the v0.3 migration. Captures, interruptions, RESET history, END DAY records, pending home-sync changes, and existing tasks remain intact.
+- When a new PWA release is waiting, a small **Dayboard update available** prompt appears. Selecting **Update** activates it and reloads the application without clearing IndexedDB. Updates are never forced during active work.
+
+Sera Dayboard v0.3 intentionally includes no points, XP, streaks, levels, scores, rewards, or productivity grades.
 
 All workday data stays in IndexedDB on the device. There is no account or network dependency after the PWA is installed; the optional private home-sync service is used only on explicit request.
 
@@ -57,7 +68,7 @@ GitHub Pages hosts only the static application files. User tasks, captures, inte
 
 **Sync Home** is an explicit, user-started action. It sends the prepared day snapshot only to the configured private Sera address and can receive an updated DayPlan in response. There is no timer, background task-data sync, or automatic retry. If Sera is unavailable, the outbox and complete working database remain safely on the tablet.
 
-The sync payload includes today’s tasks and timings, carry-over work, blockers, captures, interruptions, reset metadata, tomorrow’s queue, and the end-of-day note. It intentionally contains no streak or missed-goal data.
+The sync payload includes today’s tasks and timings, carry-over work, blockers, captures, interruptions, reset metadata, full weekly DayPlans, planned dates, Major Objective flags, tomorrow’s queue, and the end-of-day note. It intentionally contains no streak or missed-goal data.
 
 ## Privacy and production architecture
 

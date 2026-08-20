@@ -1,21 +1,33 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Capture, DayPlan, Interruption, ResetPreferences, ResetSession, SyncChange, SyncSettings, Task } from './types'
+import type { Capture, CompletionPreferences, DayPlan, Interruption, ResetPreferences, ResetSession, SyncChange, SyncSettings, Task } from './types'
 
 export const db = new Dexie('SeraDayboard') as Dexie & {
   tasks: EntityTable<Task, 'id'>; captures: EntityTable<Capture, 'id'>;
   interruptions: EntityTable<Interruption, 'id'>; dayPlans: EntityTable<DayPlan, 'date'>;
   resetPreferences: EntityTable<ResetPreferences, 'id'>; resetSessions: EntityTable<ResetSession, 'id'>;
   syncChanges: EntityTable<SyncChange, 'id'>; syncSettings: EntityTable<SyncSettings, 'id'>
+  completionPreferences: EntityTable<CompletionPreferences, 'id'>
 }
 db.version(1).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date' })
 db.version(2).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date', resetPreferences: 'id', resetSessions: 'id,taskId,startedAt' })
 db.version(3).stores({ tasks: 'id,status,order', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date', resetPreferences: 'id', resetSessions: 'id,taskId,startedAt', syncChanges: 'id,entityType,entityId,changedAt', syncSettings: 'id' })
+db.version(4).stores({ tasks: 'id,status,order,plannedDate', captures: 'id,createdAt,handled', interruptions: 'id,taskId,interruptedAt', dayPlans: 'date', resetPreferences: 'id', resetSessions: 'id,taskId,startedAt', syncChanges: 'id,entityType,entityId,changedAt', syncSettings: 'id', completionPreferences: 'id' })
 export const todayKey = () => new Date().toLocaleDateString('en-CA')
 export const tomorrowKey = () => { const date = new Date(); date.setDate(date.getDate() + 1); return date.toLocaleDateString('en-CA') }
 export const uid = () => crypto.randomUUID()
 
 export async function markSyncChange(entityType: SyncChange['entityType'], entityId: string) {
   await db.syncChanges.add({ id: uid(), entityType, entityId, changedAt: new Date().toISOString() })
+}
+
+export async function migrateV03Data() {
+  const plans = await db.dayPlans.toArray()
+  await db.transaction('rw', db.tasks, async () => {
+    for (const plan of plans) for (const id of plan.taskIds) {
+      const task = await db.tasks.get(id)
+      if (task && !task.plannedDate) await db.tasks.update(id, { plannedDate: plan.date, majorObjective: task.majorObjective ?? false })
+    }
+  })
 }
 
 export async function seedDemo() {
